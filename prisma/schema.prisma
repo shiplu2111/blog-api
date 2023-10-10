@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  firstName    String   @db.VarChar(50)
+  middleName   String   @db.VarChar(50)
+  lastName     String   @db.VarChar(50)
+  mobile       String   @unique @db.VarChar(15)
+  email        String   @unique @db.VarChar(50)
+  passwordHash String   @db.VarChar(32)
+  registeredAt DateTime @default(now()) @db.Timestamp(0)
+  lastLogin    DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  intro        String   @db.TinyText
+  profile      String   @db.Text
+  Post         Post[]
+}
+
+model Category {
+  id            BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  parentId      BigInt         @db.UnsignedBigInt
+  title         String         @db.VarChar(75)
+  metaTitle     String         @db.VarChar(100)
+  slug          String         @unique @db.VarChar(100)
+  content       String         @db.Text
+  Post_Category PostCategory[]
+}
+
+model Tag {
+  id        BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title     String    @db.VarChar(75)
+  metaTitle String    @db.VarChar(100)
+  slug      String    @unique @db.VarChar(100)
+  content   String    @db.Text
+  Post_Tag  PostTag[]
+}
+
+model PostCategory {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  postId     BigInt   @db.UnsignedBigInt
+  categoryId BigInt   @db.UnsignedBigInt
+  Post       Post     @relation(fields: [postId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  Category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
+
+model Post {
+  id           BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  authorId     BigInt         @db.UnsignedBigInt
+  parentId     BigInt?        @db.UnsignedBigInt
+  title        String         @db.VarChar(75)
+  metaTitle    String?        @db.VarChar(100)
+  slug         String         @unique @db.VarChar(100)
+  summary      String?        @db.TinyText
+  published    Int            @db.TinyInt()
+  createAt     DateTime       @default(now()) @db.Timestamp(0)
+  updateAt     DateTime       @default(now()) @updatedAt @db.Timestamp(0)
+  publishedAt  DateTime?      @default(now()) @db.Timestamp(0)
+  content      String         @db.Text
+  User         User           @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  PostTag      PostTag[]
+  PostMeta     PostMeta[]
+  PostCategory PostCategory[]
+  PostComment  PostComment[]
+}
+
+model PostTag {
+  id     BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  postId BigInt @db.UnsignedBigInt
+  tagId  BigInt @db.UnsignedBigInt
+  Post   Post   @relation(fields: [postId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  Tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
+
+model PostMeta {
+  id      BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  postId  BigInt  @db.UnsignedBigInt
+  key     String? @db.VarChar(50)
+  content String  @db.Text
+  Post    Post    @relation(fields: [postId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
+
+model PostComment {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  postId      BigInt   @db.UnsignedBigInt
+  parentId    BigInt   @db.UnsignedBigInt
+  title       String   @db.VarChar(100)
+  published   Int      @db.TinyInt()
+  createAt    DateTime @default(now()) @db.Timestamp(0)
+  publishedAt DateTime @default(now()) @db.Timestamp(0)
+  content     String   @db.Text
+  Post        Post     @relation(fields: [postId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
